@@ -1,2 +1,13 @@
 # polymarkteth-v2
-Enhanced version of Polymarkteth tutorial
+
+[Documentation](https://zamrokk.github.io/polymarkteth-v2/)
+
+# Docs
+
+build and serve
+
+```
+mdbook serve
+```
+
+=> http://localhost:3000/

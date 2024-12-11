@@ -1,0 +1,23 @@
+[book]
+authors = ["Benjamin Fuentes"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Polymarkteth - A guide to develop on Etherlink"
+
+[output.html]
+mathjax-support = true
+git-repository-url = "https://github.com/zamrokk/polymarkteth"
+
+[output.html.playground]
+editable = true
+line-numbers = true
+
+[output.html.search]
+limit-results = 20
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 2
+boost-paragraph = 1
+expand = true
+heading-split-level = 2
