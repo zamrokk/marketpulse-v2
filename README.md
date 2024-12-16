@@ -1,6 +1,6 @@
-# polymarkteth-v2
+# marketpulse-v2
 
-[Documentation](https://zamrokk.github.io/polymarkteth-v2/)
+[Documentation](https://zamrokk.github.io/marketpulse-v2/)
 
 # Docs
 

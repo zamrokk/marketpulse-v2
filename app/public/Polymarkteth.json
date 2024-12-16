@@ -1,7 +1,7 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "Polymarkteth",
-  "sourceName": "contracts/Polymarkteth.sol",
+  "contractName": "Marketpulse",
+  "sourceName": "contracts/Marketpulse.sol",
   "abi": [
     {
       "inputs": [],
@@ -219,7 +219,7 @@
               "type": "uint256"
             }
           ],
-          "internalType": "struct Polymarkteth.Bet",
+          "internalType": "struct Marketpulse.Bet",
           "name": "bet",
           "type": "tuple"
         }
@@ -242,7 +242,7 @@
           "type": "string"
         },
         {
-          "internalType": "enum Polymarkteth.BET_RESULT",
+          "internalType": "enum Marketpulse.BET_RESULT",
           "name": "result",
           "type": "uint8"
         }
@@ -257,7 +257,7 @@
       "name": "status",
       "outputs": [
         {
-          "internalType": "enum Polymarkteth.BET_RESULT",
+          "internalType": "enum Marketpulse.BET_RESULT",
           "name": "",
           "type": "uint8"
         }

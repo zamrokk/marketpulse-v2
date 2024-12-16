@@ -98,7 +98,7 @@
           { "internalType": "string", "name": "option", "type": "string" },
           { "internalType": "uint256", "name": "amount", "type": "uint256" }
         ],
-        "internalType": "struct Polymarkteth.Bet",
+        "internalType": "struct Marketpulse.Bet",
         "name": "bet",
         "type": "tuple"
       }
@@ -117,7 +117,7 @@
     "inputs": [
       { "internalType": "string", "name": "optionResult", "type": "string" },
       {
-        "internalType": "enum Polymarkteth.BET_RESULT",
+        "internalType": "enum Marketpulse.BET_RESULT",
         "name": "result",
         "type": "uint8"
       }
@@ -132,7 +132,7 @@
     "name": "status",
     "outputs": [
       {
-        "internalType": "enum Polymarkteth.BET_RESULT",
+        "internalType": "enum Marketpulse.BET_RESULT",
         "name": "",
         "type": "uint8"
       }

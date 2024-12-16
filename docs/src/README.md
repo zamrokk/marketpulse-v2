@@ -1,6 +1,6 @@
 # Introduction
 
-This guide is an [Etherlink](https://www.etherlink.com/) tutorial to create a real application from scratch based on this famous website [Polymarket](https://polymarket.com/)
+This guide is an [Etherlink](https://www.etherlink.com/) tutorial to create a real bet platform application 
 
 ![](https://nypost.com/wp-content/uploads/sites/2/2024/11/polymarket-2024-93092260.jpg?w=1024)
 

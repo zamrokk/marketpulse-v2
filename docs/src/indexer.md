@@ -7,7 +7,7 @@ https://docs.etherlink.com/building-on-etherlink/indexing-graph/
 
 npm install -g @graphprotocol/graph-cli
 
-graph init polymarkteth thegraph --protocol=ethereum 
+graph init marketpulse thegraph --protocol=ethereum 
 
 
 
@@ -15,7 +15,7 @@ graph init polymarkteth thegraph --protocol=ethereum
 
 > Note : buggy verify on  --from-contract=0xC8787327e1864f5ab5BED66e302Cb123D68ED30f 
 
-> Note : buggy --abi==artifacts/contracts/Polymarkteth.sol/Polymarkteth.json
+> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 
 
 ------
@@ -87,7 +87,7 @@ graph build
 
 graph auth <DEPLOY_KEY>
 
-graph deploy polymarkteth
+graph deploy marketpulse
 
 Note : very boring to get minimum 0.001 ETH on Arbitrum mainnet, then go to the faucet (https://www.alchemy.com/faucets/arbitrum-sepolia) and register on Alchemy ...
 

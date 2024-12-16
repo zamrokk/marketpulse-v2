@@ -1,4 +1,4 @@
-import { Polymarkteth, Polymarkteth__factory } from "./typechain-types";
+import { Marketpulse, Marketpulse__factory } from "./typechain-types";
 
 import BigNumber from "bignumber.js";
 import { useEffect, useState } from "react";
@@ -57,7 +57,7 @@ export default function App({ thirdwebClient }: AppProps) {
   const [winner, setWinner] = useState<string | undefined>(undefined);
   const [fees, setFees] = useState<number>(0);
   const [betKeys, setBetKeys] = useState<bigint[]>([]);
-  const [_bets, setBets] = useState<Polymarkteth.BetStruct[]>([]);
+  const [_bets, setBets] = useState<Marketpulse.BetStruct[]>([]);
 
   const reload = async () => {
     if (!account?.address) {
@@ -65,10 +65,10 @@ export default function App({ thirdwebClient }: AppProps) {
     } else {
       const dataStatus = await readContract({
         contract: getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         }),
         method: "status",
         params: [],
@@ -76,10 +76,10 @@ export default function App({ thirdwebClient }: AppProps) {
 
       const dataWinner = await readContract({
         contract: getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         }),
         method: "winner",
         params: [],
@@ -87,10 +87,10 @@ export default function App({ thirdwebClient }: AppProps) {
 
       const dataFEES = await readContract({
         contract: getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         }),
         method: "FEES",
         params: [],
@@ -98,10 +98,10 @@ export default function App({ thirdwebClient }: AppProps) {
 
       const dataBetKeys = await readContract({
         contract: getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         }),
         method: "getBetKeys",
         params: [],
@@ -140,15 +140,15 @@ export default function App({ thirdwebClient }: AppProps) {
             async (betKey) =>
               (await readContract({
                 contract: getContract({
-                  abi: Polymarkteth__factory.abi,
+                  abi: Marketpulse__factory.abi,
                   client: thirdwebClient,
                   chain: defineChain(etherlinkTestnet.id),
                   address:
-                    CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+                    CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
                 }),
                 method: "getBets",
                 params: [betKey],
-              })) as unknown as Polymarkteth.BetStruct
+              })) as unknown as Marketpulse.BetStruct
           )
         );
         setBets(bets);
@@ -178,10 +178,10 @@ export default function App({ thirdwebClient }: AppProps) {
       try {
         const preparedContractCall = await prepareContractCall({
           contract: getContract({
-            abi: Polymarkteth__factory.abi,
+            abi: Marketpulse__factory.abi,
             client: thirdwebClient,
             chain: defineChain(etherlinkTestnet.id),
-            address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+            address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
           }),
           method: "ping",
           params: [],
@@ -207,7 +207,7 @@ export default function App({ thirdwebClient }: AppProps) {
       } catch (error) {
         const errorParsed = extractErrorDetails(
           error,
-          Polymarkteth__factory.abi
+          Marketpulse__factory.abi
         );
         setError(errorParsed.message);
       }
@@ -228,10 +228,10 @@ export default function App({ thirdwebClient }: AppProps) {
     const runFunction = async () => {
       try {
         const contract = getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         });
 
         const preparedContractCall = await prepareContractCall({
@@ -261,7 +261,7 @@ export default function App({ thirdwebClient }: AppProps) {
       } catch (error) {
         const errorParsed = extractErrorDetails(
           error,
-          Polymarkteth__factory.abi
+          Marketpulse__factory.abi
         );
         setError(errorParsed.message);
       }
@@ -388,10 +388,10 @@ export default function App({ thirdwebClient }: AppProps) {
     try {
       const preparedContractCall = await prepareContractCall({
         contract: getContract({
-          abi: Polymarkteth__factory.abi,
+          abi: Marketpulse__factory.abi,
           client: thirdwebClient,
           chain: defineChain(etherlinkTestnet.id),
-          address: CONTRACT_ADDRESS_JSON["PolymarktethModule#Polymarkteth"],
+          address: CONTRACT_ADDRESS_JSON["MarketpulseModule#Marketpulse"],
         }),
         method: "resolveResult",
         params: [option, BET_RESULT.WIN],
@@ -417,7 +417,7 @@ export default function App({ thirdwebClient }: AppProps) {
 
       setError("");
     } catch (error) {
-      const errorParsed = extractErrorDetails(error, Polymarkteth__factory.abi);
+      const errorParsed = extractErrorDetails(error, Marketpulse__factory.abi);
       setError(errorParsed.message);
     }
   };
@@ -426,7 +426,7 @@ export default function App({ thirdwebClient }: AppProps) {
     <>
       <header>
         <span style={{ display: "flex" }}>
-          <h1>Polymarktez </h1>
+          <h1>Market Pulse</h1>
 
           <div className="flex items-center gap-4">
             <ConnectButton

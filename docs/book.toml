@@ -3,11 +3,11 @@ authors = ["Benjamin Fuentes"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Polymarkteth - A guide to develop on Etherlink"
+title = "Marketpulse - A guide to develop on Etherlink"
 
 [output.html]
 mathjax-support = true
-git-repository-url = "https://github.com/zamrokk/polymarkteth"
+git-repository-url = "https://github.com/zamrokk/marketpulse"
 
 [output.html.playground]
 editable = true
