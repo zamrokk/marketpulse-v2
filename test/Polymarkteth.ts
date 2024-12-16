@@ -84,7 +84,7 @@ describe("Polymarkteth", function () {
   describe("scenario", () => {
     let betTrump1Id: bigint = BigInt(0);
     let betKamala2Id: string = "";
-    let betKeys: bigint[] = [];
+    let bets: any[] = [];
 
     it("should run the full scenario", async () => {
       console.log("should return a list of empty bets");
@@ -95,7 +95,7 @@ describe("Polymarkteth", function () {
         bob,
       } = await loadFixture(deployContractFixture);
 
-      expect(await polymarktethContract.read.betKeys.length).to.equal(0);
+      expect(await polymarktethContract.read.bets.length).to.equal(0);
 
       console.log("should return 200");
 
@@ -112,7 +112,7 @@ describe("Polymarkteth", function () {
 
       expect(receipt.status).equals("success");
 
-      betKeys = [...(await polymarktethContract.read.getBetKeys())];
+      bets = [...(await polymarktethContract.read.bets())];
       console.log("betKeys", betKeys);
 
       betTrump1Id = betKeys[0];

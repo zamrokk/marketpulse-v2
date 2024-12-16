@@ -31,23 +31,18 @@ contract Polymarkteth {
     uint256 public constant FEES = 10; // as PERCENTAGE unit (%)
 
     /** SLOTS */
-    address payable public admin; //0
-    mapping(uint256 => Bet) public bets; //1
-    uint256[] public betKeys; //2
-    BET_RESULT public status = BET_RESULT.PENDING; //3
-    string public winner; //4
+    address payable public admin;
+    Bet[] public bets;
+    BET_RESULT public status = BET_RESULT.PENDING;
+    string public winner;
+    uint256 totalTrumpAmount = 0; //wei
+    uint256 totalHarrisAmount = 0; //wei
 
     event Pong();
+    event NewBet(Bet bet);
 
     constructor() payable {
         admin = payable(msg.sender);
-    }
-
-    /**
-     * Getter /setter
-     */
-    function getBetKeys() public view returns (uint256[] memory) {
-        return betKeys;
     }
 
     function getBets(uint256 betId) public view returns (Bet memory bet) {
@@ -79,7 +74,7 @@ contract Polymarkteth {
     /**
      * Simple Ping
      */
-    function ping() public{
+    function ping() public {
         console.log("Ping");
         emit Pong();
     }
@@ -113,13 +108,14 @@ contract Polymarkteth {
 
         uint256 betId = generateBetId();
 
-        bets[betId] = Bet({
+        Bet memory newBet = Bet({
             id: betId,
             option: selection,
             amount: msg.value,
             owner: payable(msg.sender)
         });
-        betKeys.push(betId);
+        bets.push(newBet);
+        emit NewBet(newBet);
 
         console.log("Bet %d placed", betId);
 
@@ -129,6 +125,22 @@ contract Polymarkteth {
             selection,
             odds
         );
+
+        //update aggregated amounts
+        if (keccak256(bytes(newBet.option)) != keccak256(bytes("trump"))) {
+            (bool success, uint256 result) = totalTrumpAmount.tryAdd(
+                newBet.amount
+            );
+            require(success, "Cannot add totalTrumpAmount and bet.amount");
+            totalTrumpAmount = result;
+        } else {
+            (bool success, uint256 result) = totalHarrisAmount.tryAdd(
+                newBet.amount
+            );
+            require(success, "Cannot add totalHarrisAmount and bet.amount");
+            totalHarrisAmount = result;
+        }
+
         return betId;
     }
 
@@ -148,33 +160,18 @@ contract Polymarkteth {
             betAmount
         );
 
-        uint256 totalLoserAmount = 0; //wei
-        for (uint i = 0; i < betKeys.length; i++) {
-            Bet memory bet = bets[betKeys[i]];
+        uint256 totalLoserAmount = (keccak256(bytes("trump")) !=
+            keccak256(bytes(option)))
+            ? totalTrumpAmount
+            : totalHarrisAmount; //wei
+        uint256 totalWinnerAmount = (keccak256(bytes("trump")) ==
+            keccak256(bytes(option)))
+            ? totalTrumpAmount + betAmount
+            : totalHarrisAmount + betAmount; //wei
 
-            if (keccak256(bytes(bet.option)) != keccak256(bytes(option))) {
-                (bool success, uint256 result) = totalLoserAmount.tryAdd(
-                    bet.amount
-                );
-                require(success, "Cannot add totalLoserAmount and bet.amount");
-                totalLoserAmount = result;
-            }
-        }
         console.log("totalLoserAmount : %d", totalLoserAmount);
-
-        uint256 totalWinnerAmount = betAmount; //wei
-        for (uint i = 0; i < betKeys.length; i++) {
-            Bet memory bet = bets[betKeys[i]];
-
-            if (keccak256(bytes(bet.option)) == keccak256(bytes(option))) {
-                (bool success, uint256 result) = totalWinnerAmount.tryAdd(
-                    bet.amount
-                );
-                require(success, "Cannot add totalWinnerAmount and bet.amount");
-                totalWinnerAmount = result;
-            }
-        }
         console.log("totalWinnerAmount  : %d", totalWinnerAmount);
+
         uint256 part = Math.mulDiv(
             totalLoserAmount,
             10 ** ODD_DECIMALS,
@@ -228,8 +225,8 @@ contract Polymarkteth {
             "Only give winners or draw, no other choices"
         );
 
-        for (uint i = 0; i < betKeys.length; i++) {
-            Bet memory bet = bets[betKeys[i]];
+        for (uint i = 0; i < bets.length; i++) {
+            Bet memory bet = bets[i];
             if (
                 result == BET_RESULT.WIN &&
                 keccak256(bytes(bet.option)) == keccak256(bytes(optionResult))
