@@ -1,4 +1,7 @@
-# Usage of an indexer : TheGraph
+# Usage of an indexer 
+
+Rebuild the relational DB behind the contract. 
+For example : list all bets from same users without loading into memory and looping all bets
 
 
 ## The graph
@@ -13,7 +16,7 @@ graph init marketpulse thegraph --protocol=ethereum
 
 > Note : buggy if contract is buggy too --network=etherlink-testnet 
 
-> Note : buggy verify on  --from-contract=0xC8787327e1864f5ab5BED66e302Cb123D68ED30f 
+> Note : buggy verify on  --from-contract=0x70Ad27abcCc0596be6507fc61c18364699564f6b 
 
 > Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 
@@ -82,17 +85,26 @@ Optimization : now we have to change the calculateOdds function has we cannot lo
 
 ---------
 
+```bash
 graph codegen
 graph build
 
 graph auth <DEPLOY_KEY>
 
 graph deploy marketpulse
+```
 
 Note : very boring to get minimum 0.001 ETH on Arbitrum mainnet, then go to the faucet (https://www.alchemy.com/faucets/arbitrum-sepolia) and register on Alchemy ...
 
 Go to thegraph website and 
 test 
 
-then publish your graph   and  .... wait , take a coffee or two ... or three ... 1h ?
+then publish your graph   and  .... wait ,it takes several hours on testnet ...
 
+
+//if abi changed, regen it, delete the full project and try again
+and then again graph init ...
+
+
+
+## 

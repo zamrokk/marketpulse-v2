@@ -84,7 +84,7 @@ describe("Marketpulse", function () {
   describe("scenario", () => {
     let betTrump1Id: bigint = BigInt(0);
     let betKamala2Id: string = "";
-    let bets: any[] = [];
+    let betKeys: bigint[] = [];
 
     it("should run the full scenario", async () => {
       console.log("should return a list of empty bets");
@@ -95,7 +95,7 @@ describe("Marketpulse", function () {
         bob,
       } = await loadFixture(deployContractFixture);
 
-      expect(await marketpulseContract.read.bets.length).to.equal(0);
+      expect(await marketpulseContract.read.betKeys.length).to.equal(0);
 
       console.log("should return 200");
 
@@ -112,7 +112,7 @@ describe("Marketpulse", function () {
 
       expect(receipt.status).equals("success");
 
-      bets = [...(await marketpulseContract.read.bets())];
+      betKeys = [...(await marketpulseContract.read.getBetKeys())];
       console.log("betKeys", betKeys);
 
       betTrump1Id = betKeys[0];

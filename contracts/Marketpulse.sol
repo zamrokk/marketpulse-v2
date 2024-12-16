@@ -5,6 +5,7 @@ pragma solidity ^0.8.24;
 import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 /**
  * @title Marketpulse
@@ -13,6 +14,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  */
 contract Marketpulse {
     using Math for uint256;
+    using EnumerableSet for EnumerableSet.UintSet;
 
     struct Bet {
         uint256 id;
@@ -32,7 +34,10 @@ contract Marketpulse {
 
     /** SLOTS */
     address payable public admin;
-    Bet[] public bets;
+
+    mapping(uint256 => Bet) public bets;
+    uint256[] public betKeys; 
+
     BET_RESULT public status = BET_RESULT.PENDING;
     string public winner;
     uint256 totalTrumpAmount = 0; //wei
@@ -45,10 +50,16 @@ contract Marketpulse {
         admin = payable(msg.sender);
     }
 
+  /**
+     * Getter /setter
+    */
+    function getBetKeys() public view returns (uint256[] memory) {
+        return betKeys;
+    }
+
     function getBets(uint256 betId) public view returns (Bet memory bet) {
         return bets[betId];
     }
-
     /** Utility
      *
      * */
@@ -114,7 +125,10 @@ contract Marketpulse {
             amount: msg.value,
             owner: payable(msg.sender)
         });
-        bets.push(newBet);
+
+        bets[betId] = newBet;
+        betKeys.push(betId);
+
         emit NewBet(newBet);
 
         console.log("Bet %d placed", betId);
@@ -127,7 +141,7 @@ contract Marketpulse {
         );
 
         //update aggregated amounts
-        if (keccak256(bytes(newBet.option)) != keccak256(bytes("trump"))) {
+        if (keccak256(bytes(newBet.option)) == keccak256(bytes("trump"))) {
             (bool success, uint256 result) = totalTrumpAmount.tryAdd(
                 newBet.amount
             );
@@ -159,6 +173,9 @@ contract Marketpulse {
             option,
             betAmount
         );
+
+        console.log("totalTrumpAmount : %d", totalTrumpAmount);
+        console.log("totalHarrisAmount  : %d", totalHarrisAmount);
 
         uint256 totalLoserAmount = (keccak256(bytes("trump")) !=
             keccak256(bytes(option)))
@@ -225,8 +242,8 @@ contract Marketpulse {
             "Only give winners or draw, no other choices"
         );
 
-        for (uint i = 0; i < bets.length; i++) {
-            Bet memory bet = bets[i];
+        for (uint i = 0; i < betKeys.length; i++) {
+            Bet memory bet = bets[betKeys[i]];
             if (
                 result == BET_RESULT.WIN &&
                 keccak256(bytes(bet.option)) == keccak256(bytes(optionResult))

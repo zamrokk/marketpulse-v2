@@ -1,5 +1,28 @@
 [
   { "inputs": [], "stateMutability": "payable", "type": "constructor" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "uint256", "name": "id", "type": "uint256" },
+          {
+            "internalType": "address payable",
+            "name": "owner",
+            "type": "address"
+          },
+          { "internalType": "string", "name": "option", "type": "string" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" }
+        ],
+        "indexed": false,
+        "internalType": "struct Marketpulse.Bet",
+        "name": "bet",
+        "type": "tuple"
+      }
+    ],
+    "name": "NewBet",
+    "type": "event"
+  },
   { "anonymous": false, "inputs": [], "name": "Pong", "type": "event" },
   {
     "inputs": [],

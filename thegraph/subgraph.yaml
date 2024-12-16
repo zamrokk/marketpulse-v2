@@ -8,7 +8,7 @@ dataSources:
     name: Contract
     network: etherlink-testnet
     source:
-      address: "0xC8787327e1864f5ab5BED66e302Cb123D68ED30f"
+      address: "0x70Ad27abcCc0596be6507fc61c18364699564f6b"
       abi: Contract
       startBlock: 0
     mapping:
@@ -16,11 +16,14 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
+        - NewBet
         - Pong
       abis:
         - name: Contract
           file: ./abis/Contract.json
       eventHandlers:
+        - event: NewBet((uint256,address,string,uint256))
+          handler: handleNewBet
         - event: Pong()
           handler: handlePong
       file: ./src/contract.ts
