@@ -107,4 +107,17 @@ and then again graph init ...
 
 
 
+## TEST BASE SEPOLIA
+
+
+
+graph init marketpulse-base-sepolia thegraph --protocol=ethereum 
+
+> Note : buggy if contract is buggy too --network=etherlink-testnet 
+
+> Note : buggy verify on  --from-contract=0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2 
+
+> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
+
+
 ## 

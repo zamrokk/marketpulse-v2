@@ -21,6 +21,26 @@ const config: HardhatUserConfig = {
       url: "https://node.ghostnet.etherlink.com",
       accounts: [deployerPrivateKey],
     },
+    arbitrumSepolia: {
+      url: 'https://sepolia-rollup.arbitrum.io/rpc',
+      chainId: 421614,
+      accounts: [deployerPrivateKey],
+    },
+    arbitrumOne: {
+      url: 'https://arb1.arbitrum.io/rpc',
+      accounts: [deployerPrivateKey],
+    },
+    'base-mainnet': {
+      url: 'https://mainnet.base.org',
+      accounts: [deployerPrivateKey],
+      gasPrice: 1000000000,
+    },
+    // for testnet
+    'base-sepolia': {
+      url: 'https://sepolia.base.org',
+      accounts: [deployerPrivateKey],
+      gasPrice: 1000000000,
+    },
   },
   etherscan: {
     apiKey: {

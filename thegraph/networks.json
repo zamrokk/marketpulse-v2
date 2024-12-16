@@ -1,8 +1,8 @@
 {
-  "etherlink-testnet": {
+  "base-sepolia": {
     "Contract": {
-      "address": "0x70Ad27abcCc0596be6507fc61c18364699564f6b",
-      "startBlock": 0
+      "address": "0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2",
+      "startBlock": 19298263
     }
   }
 }
