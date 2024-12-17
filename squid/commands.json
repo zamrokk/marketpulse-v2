@@ -1,0 +1,68 @@
+{
+  "$schema": "https://subsquid.io/schemas/commands.json",
+  "commands": {
+    "clean": {
+      "description": "delete all build artifacts",
+      "cmd": ["rm", "-rf", "lib"]
+    },
+    "build": {
+      "description": "build the project",
+      "deps": ["clean", "typegen"],
+      "cmd": ["tsc"]
+    },
+    "migration:apply": {
+      "description": "Apply the DB migrations",
+      "cmd": ["squid-typeorm-migration", "apply"]
+    },
+    "migration:generate": {
+      "description": "Generate a DB migration matching the TypeORM entities",
+      "deps": ["build", "migration:clean"],
+      "cmd": ["squid-typeorm-migration", "generate"]
+    },
+    "migration:clean": {
+      "description": "Clean the migrations folder",
+      "cmd": ["npx", "--yes", "rimraf", "./db/migrations"]
+    },
+    "migration": {
+      "deps": ["build"],
+      "cmd": ["squid-typeorm-migration", "generate"],
+      "hidden": true
+    },
+    "codegen": {
+      "description": "Generate TypeORM entities from the schema file",
+      "cmd": ["squid-typeorm-codegen"]
+    },
+    "typegen": {
+      "description": "generate abi file",
+      "cmd": ["squid-evm-typegen", "src/abi", "./src/abi/Marketpulse.json"]
+    },
+    "process": {
+      "description": "Load .env and start the squid processor",
+      "deps": ["build", "migration:apply"],
+      "cmd": ["node", "--require=dotenv/config", "lib/main.js"]
+    },
+    "process:prod": {
+      "description": "Start the squid processor",
+      "cmd": ["node", "lib/main.js"],
+      "hidden": true
+    },
+    "serve": {
+      "description": "Start the GraphQL API server",
+      "cmd": ["squid-graphql-server"]
+    },
+    "serve:prod": {
+      "description": "Start the GraphQL API server with caching and limits",
+      "cmd": [
+        "squid-graphql-server",
+        "--dumb-cache",
+        "in-memory",
+        "--dumb-cache-ttl",
+        "1000",
+        "--dumb-cache-size",
+        "100",
+        "--dumb-cache-max-age",
+        "1000"
+      ]
+    }
+  }
+}

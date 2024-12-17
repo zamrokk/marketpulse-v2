@@ -8,8 +8,8 @@ This guide is an [Etherlink](https://www.etherlink.com/) tutorial to create a re
 
 ## V2 version includes new features 
 
-- usage of an indexer : TheGraph
+- optimization : simplify code with aggregated data
+- usage of Oracle : Pyth Entropy VRF for ID + Redstone for results ? 
+- usage of an indexer : TheGraph or Subsquid
 - usage of stablecoins : USDC
 - gasless version using Account Abstraction from Thirdweb
-- usage of Oracle : Pyth or Redstone ? //TODO
-- optimization : Entropy VRF

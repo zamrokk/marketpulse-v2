@@ -47,8 +47,10 @@ export interface MarketpulseInterface extends Interface {
       | "addressToString"
       | "admin"
       | "bet"
+      | "betKeys"
       | "bets"
       | "calculateOdds"
+      | "getBetKeys"
       | "getBets"
       | "ping"
       | "resolveResult"
@@ -72,10 +74,18 @@ export interface MarketpulseInterface extends Interface {
     functionFragment: "bet",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "betKeys",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "bets", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "calculateOdds",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getBetKeys",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getBets",
@@ -100,11 +110,13 @@ export interface MarketpulseInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bet", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "betKeys", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "bets", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "calculateOdds",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getBetKeys", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getBets", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ping", data: BytesLike): Result;
   decodeFunctionResult(
@@ -194,6 +206,8 @@ export interface Marketpulse extends BaseContract {
     "payable"
   >;
 
+  betKeys: TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+
   bets: TypedContractMethod<
     [arg0: BigNumberish],
     [
@@ -212,6 +226,8 @@ export interface Marketpulse extends BaseContract {
     [bigint],
     "view"
   >;
+
+  getBetKeys: TypedContractMethod<[], [bigint[]], "view">;
 
   getBets: TypedContractMethod<
     [betId: BigNumberish],
@@ -255,6 +271,9 @@ export interface Marketpulse extends BaseContract {
     "payable"
   >;
   getFunction(
+    nameOrSignature: "betKeys"
+  ): TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+  getFunction(
     nameOrSignature: "bets"
   ): TypedContractMethod<
     [arg0: BigNumberish],
@@ -275,6 +294,9 @@ export interface Marketpulse extends BaseContract {
     [bigint],
     "view"
   >;
+  getFunction(
+    nameOrSignature: "getBetKeys"
+  ): TypedContractMethod<[], [bigint[]], "view">;
   getFunction(
     nameOrSignature: "getBets"
   ): TypedContractMethod<
