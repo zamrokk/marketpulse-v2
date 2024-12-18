@@ -7,6 +7,9 @@ For example : list all bets from same users without loading into memory and loop
 
 https://docs.etherlink.com/building-on-etherlink/indexing-graph/
 
+
+> Note : Node >= 20
+
 npm install -g @graphprotocol/graph-cli
 
 graph init marketpulse thegraph --protocol=ethereum
