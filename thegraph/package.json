@@ -1,13 +1,13 @@
 {
-  "name": "marketpulse-arbitrum-sepolia",
+  "name": "marketpulse",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ marketpulse-arbitrum-sepolia",
-    "create-local": "graph create --node http://localhost:8020/ marketpulse-arbitrum-sepolia",
-    "remove-local": "graph remove --node http://localhost:8020/ marketpulse-arbitrum-sepolia",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 marketpulse-arbitrum-sepolia",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ marketpulse",
+    "create-local": "graph create --node http://localhost:8020/ marketpulse",
+    "remove-local": "graph remove --node http://localhost:8020/ marketpulse",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 marketpulse",
     "test": "graph test"
   },
   "dependencies": {

@@ -13,7 +13,7 @@ graph init marketpulse thegraph --protocol=ethereum
 
 > Note : buggy if contract is buggy too --network=etherlink-testnet
 
-> Note : buggy verify on --from-contract=0x70Ad27abcCc0596be6507fc61c18364699564f6b
+> Note : buggy verify on --from-contract=0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2
 
 > Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 
@@ -129,6 +129,8 @@ graph build
 graph deploy marketpulse-arbitrum-sepolia
 
 ## Subsquid
+
+//TODO generate from ABI   npx squid-gen-abi --help
 
 mkdir squid && cd squid
 npm init
