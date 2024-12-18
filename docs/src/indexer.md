@@ -8,7 +8,7 @@ For example : list all bets from same users without loading into memory and loop
 https://docs.etherlink.com/building-on-etherlink/indexing-graph/
 
 
-> Note : Node >= 20
+> Note : Node >= v20.18.1
 
 npm install -g @graphprotocol/graph-cli
 
