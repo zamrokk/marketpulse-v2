@@ -13,7 +13,7 @@ graph init marketpulse thegraph --protocol=ethereum
 
 > Note : buggy if contract is buggy too --network=etherlink-testnet
 
-> Note : buggy verify on --from-contract=0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2
+> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
 
 > Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 
@@ -106,7 +106,7 @@ graph init marketpulse-base-sepolia thegraph --protocol=ethereum
 
 > Note : buggy if contract is buggy too --network=etherlink-testnet
 
-> Note : buggy verify on --from-contract=0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2
+> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
 
 > Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 
@@ -120,7 +120,7 @@ graph init marketpulse-arbitrum-sepolia thegraph --protocol=ethereum
 
 > Note : buggy if contract is buggy too --network=etherlink-testnet
 
-> Note : buggy verify on --from-contract=0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2
+> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
 
 > Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
 

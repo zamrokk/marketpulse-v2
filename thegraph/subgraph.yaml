@@ -5,12 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: Contract
+    name: Marketpulse
     network: etherlink-testnet
     source:
-      address: "0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2"
-      abi: Contract
-      startBlock: 16287410
+      address: "0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a"
+      abi: Marketpulse
+      startBlock: 16297152
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -19,11 +19,11 @@ dataSources:
         - NewBet
         - Pong
       abis:
-        - name: Contract
-          file: ./abis/Contract.json
+        - name: Marketpulse
+          file: ./abis/Marketpulse.json
       eventHandlers:
         - event: NewBet((uint256,address,string,uint256))
           handler: handleNewBet
         - event: Pong()
           handler: handlePong
-      file: ./src/contract.ts
+      file: ./src/marketpulse.ts

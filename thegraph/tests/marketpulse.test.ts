@@ -8,9 +8,9 @@ import {
 } from "matchstick-as/assembly/index"
 import {} from "@graphprotocol/graph-ts"
 import { NewBet } from "../generated/schema"
-import { NewBet as NewBetEvent } from "../generated/Contract/Contract"
-import { handleNewBet } from "../src/contract"
-import { createNewBetEvent } from "./contract-utils"
+import { NewBet as NewBetEvent } from "../generated/Marketpulse/Marketpulse"
+import { handleNewBet } from "../src/marketpulse"
+import { createNewBetEvent } from "./marketpulse-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0

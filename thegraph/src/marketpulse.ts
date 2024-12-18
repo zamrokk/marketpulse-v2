@@ -1,7 +1,7 @@
 import {
   NewBet as NewBetEvent,
   Pong as PongEvent
-} from "../generated/Contract/Contract"
+} from "../generated/Marketpulse/Marketpulse"
 import { NewBet, Pong } from "../generated/schema"
 
 export function handleNewBet(event: NewBetEvent): void {

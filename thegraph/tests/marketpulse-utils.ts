@@ -1,6 +1,6 @@
 import { newMockEvent } from "matchstick-as"
 import { ethereum } from "@graphprotocol/graph-ts"
-import { NewBet, Pong } from "../generated/Contract/Contract"
+import { NewBet, Pong } from "../generated/Marketpulse/Marketpulse"
 
 export function createNewBetEvent(bet: ethereum.Tuple): NewBet {
   let newBetEvent = changetype<NewBet>(newMockEvent())

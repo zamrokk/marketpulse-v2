@@ -1,8 +1,8 @@
 {
   "etherlink-testnet": {
-    "Contract": {
-      "address": "0x0b201a037F3d4CEED1ceFaE8200721d950143Ff2",
-      "startBlock": 16287410
+    "Marketpulse": {
+      "address": "0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a",
+      "startBlock": 16297152
     }
   }
 }
