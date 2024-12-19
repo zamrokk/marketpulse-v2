@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bytes = exports.datetime = exports.bigdecimal = exports.bigint = exports.boolean = exports.float = exports.int = exports.id = exports.string = void 0;
+exports.bigdecimalTransformer = exports.floatTransformer = exports.bigintTransformer = exports.bytes = exports.datetime = exports.bigdecimal = exports.bigint = exports.boolean = exports.float = exports.int = exports.id = exports.string = void 0;
 exports.fromList = fromList;
 exports.nonNull = nonNull;
 exports.enumFromJson = enumFromJson;
@@ -102,6 +102,30 @@ function nonNull(val) {
     (0, assert_1.default)(val != null, 'non-nullable value is null');
     return val;
 }
+exports.bigintTransformer = {
+    to(x) {
+        return x?.toString();
+    },
+    from(s) {
+        return s == null ? undefined : BigInt(s);
+    }
+};
+exports.floatTransformer = {
+    to(x) {
+        return x?.toString();
+    },
+    from(s) {
+        return s == null ? undefined : Number(s);
+    }
+};
+exports.bigdecimalTransformer = {
+    to(x) {
+        return x?.toString();
+    },
+    from(s) {
+        return s == null ? undefined : decimal.BigDecimal(s);
+    }
+};
 function enumFromJson(json, enumObject) {
     (0, assert_1.default)(typeof json == 'string', 'invalid enum value');
     let val = enumObject[json];

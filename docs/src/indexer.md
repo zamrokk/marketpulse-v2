@@ -1,390 +1,330 @@
 # Usage of an indexer
 
-Rebuild the relational DB behind the contract.
-For example : list all bets from same users without loading into memory and looping all bets
+Blockchain RPC API proposes very basic level of service to query Blockchain data, and it is often costly
 
-## The graph
+Indexers can help rebuilding a relational database on top of contracts events. Thus, developer can use Rest or GraphQL to execute complex queries on indexed data or calculate statistics over historical data
 
-https://docs.etherlink.com/building-on-etherlink/indexing-graph/
+For example : list all bets from a single user instead of querying the smart contract that will load all data into memory and looping over the bet array
 
+## Etherlink indexers
 
-> Note : Node >= v20.18.1
+Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/) , [**SQD**](https://www.sqd.dev/) (SubSquid) and [**Dipdup**](https://dipdup.io/)
 
-npm install -g @graphprotocol/graph-cli
+|      | thegraph                                                                                                                                                                                                                                                                                                                    | sqd                                                                                                                                                                                                                   | dipdup |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| pros | Scan abi and autogenerate files from events with the CLI. Quickly deploy to production. Share revenue with other indexer providers                                                                                                                                                                                          | Scan abi and autogenerate files from events with the CLI. Easily customizable as there is a from scratch tutorial. Cloud setup is really simple and has free plan. Can also be deploy locally                         |        |
+| cons | Slow setup on the Cloud part (Need to get token for Arbitrum ETH, to request Arbitrum Sepolia ETH on faucets). Etherlink is not eligible to Signal tips on the network, so there is no community indexer providers. Economic model not easy to understand first. When ABI changes, need to restart the project from scratch | Takes more time to prepare the first subgraph and configure the infrastructure locally. It requires minimum devops skill. Documentation on commands.json and cloud secrets is not very clear. No shared revenue model |        |
 
-graph init marketpulse thegraph --protocol=ethereum
-
-> Note : buggy if contract is buggy too --network=etherlink-testnet
-
-> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
-
-> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
-
----
-
-Only events (call and blocks ) are caught, so we need to modify the source code to emit events when a bet is created
-
-- add a new event
-
-```Solidity
-    event NewBet(Bet bet);
-```
-
-- remove the betKeys array field
-- remove the getBetKeys function
-
-- Edit `bet` funtion
-
-```Solidity
-/**
-     * place bets and returns the betId
-     */
-    function bet(
-        string calldata selection,
-        uint256 odds
-    ) public payable returns (uint256) {
-        require(msg.value > 0, "Bet amount must be positive.");
-        require(
-            msg.value <= msg.sender.balance,
-            "Insufficient balance to place this bet."
-        );
-
-        uint256 betId = generateBetId();
-
-        Bet newBet = Bet({
-            id: betId,
-            option: selection,
-            amount: msg.value,
-            owner: payable(msg.sender)
-        });
-        bets.push(newBet);
-        emit NewBet(newBet);
-
-        console.log("Bet %d placed", betId);
-
-        console.log(
-            "Bet placed: %d on %s at odds of %d",
-            msg.value,
-            selection,
-            odds
-        );
-        return betId;
-    }
-```
-
-> Note : in this tutorial, we don't delete bets but it could be possible on a real app
-
-Optimization : now we have to change the calculateOdds function has we cannot loop on the betKeys array anymore. It will reduce the contract storage and also execution time. Let's have a accumulator amount of bets per options
-
-- Replace the calculateOdds function by this code
-
-```Solidity
-
-```
-
----
-
-```bash
-graph codegen
-graph build
-
-graph auth <DEPLOY_KEY>
-
-graph deploy marketpulse
-```
-
-Note : very boring to get minimum 0.001 ETH on Arbitrum mainnet, then go to the faucet (https://www.alchemy.com/faucets/arbitrum-sepolia) and register on Alchemy ...
-
-Go to thegraph website and
-test
-
-then publish your graph and .... wait ,it takes several hours on testnet ...
-
-//if abi changed, regen it, delete the full project and try again
-and then again graph init ...
-
-## TEST BASE SEPOLIA
-
-graph init marketpulse-base-sepolia thegraph --protocol=ethereum
-
-> Note : buggy if contract is buggy too --network=etherlink-testnet
-
-> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
-
-> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
-
-graph codegen
-graph build
-graph deploy marketpulse-base-sepolia
-
-## TEST ARBITRUM SEPOLIA
-
-graph init marketpulse-arbitrum-sepolia thegraph --protocol=ethereum
-
-> Note : buggy if contract is buggy too --network=etherlink-testnet
-
-> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
-
-> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
-
-graph codegen
-graph build
-graph deploy marketpulse-arbitrum-sepolia
+> Note : For an generic example of indexation with 
+> - TheGraph : look [here](https://docs.etherlink.com/building-on-etherlink/indexing-graph)
+> - DipDup  : look [here](https://dipdup.io/docs/supported-networks/etherlink)
+> - Otherwise, continue with the next section using SQD (SubSquid)
 
 ## Subsquid
 
-//TODO generate from ABI   npx squid-gen-abi --help
+### Local setup
 
-mkdir squid && cd squid
-npm init
+> Note : We don't start from a template but from scratch to understand each steps and be able to customize it
 
-touch .gitignore
+1. Create a simple typescript sub-project
 
-```gitignore
-/node_modules
-package-lock.json
-.env
-```
+   ```bash
+   mkdir squid && cd squid
+   npm init
+   touch .gitignore
+   ```
 
-npm i dotenv typeorm @subsquid/evm-processor @subsquid/typeorm-store @subsquid/typeorm-migration @subsquid/graphql-server @subsquid/evm-abi
-npm i typescript @subsquid/typeorm-codegen @subsquid/evm-typegen --save-dev
+1. Edit **.gitignore** file
 
-touch tsconfig.json
+   ```gitignore
+   /node_modules
+   package-lock.json
+   .env
+   ```
 
-```json
-{
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib",
-    "module": "commonjs",
-    "target": "es2020",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
-}
-```
+1. Install **subsquid** libs
 
-touch schema.graphql
+   ```bash
+   npm i dotenv typeorm @subsquid/evm-processor @subsquid/typeorm-store @subsquid/typeorm-migration @subsquid/graphql-server @subsquid/evm-abi
 
-```graphql
-type Bet @entity {
-  id: ID! # uint256
-  owner: String! # address
-  option: String! # string
-  amount: BigInt! # uint256
-}
-```
+   npm i typescript @subsquid/typeorm-codegen @subsquid/evm-typegen @subsquid/squid-gen-evm --save-dev
+   ```
 
-npx squid-typeorm-codegen
+1. Prepare typescript config file
 
-touch .env
+   ```bash
+   touch tsconfig.json
+   ```
 
-```env
-DB_NAME=squid
-DB_PORT=23798
-GQL_PORT=4350
-ETH_HTTP=https://node.ghostnet.etherlink.com
-```
+1. Edit **tsconfig.json**
 
-touch docker-compose.yaml
+   ```json
+   {
+     "compilerOptions": {
+       "rootDir": "src",
+       "outDir": "lib",
+       "module": "commonjs",
+       "target": "es2020",
+       "esModuleInterop": true,
+       "skipLibCheck": true,
+       "experimentalDecorators": true,
+       "emitDecoratorMetadata": true
+     }
+   }
+   ```
 
-```docker
-version: "3"
-services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: "${DB_NAME}"
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "${DB_PORT}:5432"
-```
+1. Generate **graphql schema** and all entities from ABI. Replace below the **address** with your deployed contract address and **from** with your smart contract deployment block number
 
-docker compose up -d
+   ```bash
+   npx squid-gen-abi --event NewBet --abi ../artifacts/contracts/Marketpulse.sol/Marketpulse.json --address 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a --archive https://v2.archive.subsquid.io/network/etherlink-testnet --from 16297152
+   ```
 
-npx tsc
+1. Override JSON generic type on graphQL to a well structured one. Later, we can do GraphQL query on Bet fields, otherwise it is impossible with an array of values
 
-npx squid-typeorm-migration generate
+   ```graphQL
+   type ContractEventNewBet @entity {
+       id: ID!
+       blockNumber: Int! @index
+       blockTimestamp: DateTime! @index
+       transactionHash: String! @index
+       contract: String! @index
+       eventName: String! @index
+       bet: Bet!
+   }
 
-npx squid-typeorm-migration apply
+   type Bet {
+           id: ID! # uint256
+           owner: String! # address
+           option: String! # string
+           amount: BigInt! # uint256
+   }
+   ```
 
-npx squid-evm-typegen src/abi ../artifacts/contracts/Marketpulse.sol/Marketpulse.json
+1. Replace the generic JSON Bet code of `./src/mapping/contract.ts:30` by this one. It persists a structured object.
 
-touch src/main.ts
+   ```typescript
+   bet: new Bet({
+       id: e.bet.id.toString(),
+       amount: e.bet.amount,
+       option: e.bet.option,
+       owner: e.bet.owner,
+       }),
+   ```
 
-add imports
+1. Regenerate ORM files for the DB
 
-```typescript
-import { EvmBatchProcessor } from "@subsquid/evm-processor";
-import { TypeormDatabase } from "@subsquid/typeorm-store";
-import * as MarketpulseAbi from "./abi/Marketpulse";
-import { Bet } from "./model";
+   ```bash
+   npx squid-typeorm-codegen
+   ```
 
-console.info("*** process.env.ETH_HTTP", process.env.ETH_HTTP);
+1. Create the local **.env** file
 
-const processor = new EvmBatchProcessor()
-  .setGateway("https://v2.archive.subsquid.io/network/etherlink-testnet")
-  .setRpcEndpoint({
-    // set RPC endpoint in .env
-    url: process.env.ETH_HTTP,
-    rateLimit: 10,
-  })
-  .setFinalityConfirmation(75) // 15 mins to finality
-  .addLog({
-    address: ["0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a"],
-    topic0: [MarketpulseAbi.events.NewBet.topic],
-  });
+   ```bash
+   touch .env
+   ```
 
-const db = new TypeormDatabase();
+1. Edit the **.env** file
 
-processor.run(db, async (ctx) => {
-  const bets: Bet[] = [];
-  for (let block of ctx.blocks) {
-    for (let log of block.logs) {
-      let decoded_bet = MarketpulseAbi.events.NewBet.decode(log);
-      console.log("decoded_bet", decoded_bet);
-      bets.push(
-        new Bet({
-          id: decoded_bet.bet.id.toString(),
-          amount: decoded_bet.bet.amount,
-          option: decoded_bet.bet.option,
-          owner: decoded_bet.bet.owner,
-        })
-      );
+   ```env
+   DB_NAME=squid
+   DB_PORT=23798
+   GQL_PORT=4350
+   RPC_URL=https://node.ghostnet.etherlink.com
+   ```
+
+1. Prepare local Postgres DB on Docker
+
+   ```bash
+   touch docker-compose.yaml
+   ```
+
+1. Edit **docker-compose.yaml**
+
+   ```docker
+   version: "3"
+   services:
+     db:
+       image: postgres:15
+       environment:
+         POSTGRES_DB: "${DB_NAME}"
+         POSTGRES_PASSWORD: postgres
+       ports:
+         - "${DB_PORT}:5432"
+   ```
+
+1. Start the database
+
+   ```bash
+   docker compose up -d
+   ```
+
+1. Compile the project
+
+   ```bash
+   npx tsc
+   ```
+
+   > Note : you may have some errors during compilation as the generator is not always up to date with last libraries. example of encountered errors :
+   >
+   > ```logs
+   > Errors  Files
+   >  1  src/main.ts:36
+   >  3  src/mapping/contract.ts:22
+   > ```
+   >
+   > - src/main.ts:36 : remove the status line
+   > - src/main.ts:25 : replace `contract.parseFunction(ctx, transaction)` with `console.log("Contract received tx",transaction);`
+   > - src/mapping/contract.ts:22 : replace `log.transactionHash` with `log["transactionHash"]`
+   > - src/mapping/contract.ts:39 : remove `parseFunction`
+   > - src/processor.ts:16 : replace the block `setDataSource(...)` with `.setGateway("https://v2.archive.subsquid.io/network/etherlink-testnet").setRpcEndpoint({url: process.env.RPC_URL,rateLimit: 10,})
+.setFinalityConfirmation(75)`
+
+1. Generate the DB scripts to create the database and tables
+
+   ```bash
+   npx squid-typeorm-migration generate
+   ```
+
+1. Run the DB scripts
+
+   ```bash
+   npx squid-typeorm-migration apply
+   ```
+
+1. Run the processor locally
+
+   ```bash
+   node -r dotenv/config lib/main.js
+   ```
+
+1. Run the GraphQL server locally
+
+   ```bash
+   npx squid-graphql-server
+   ```
+
+1. Go to localhost:4350/graphql
+
+1. Play with graphQL queries, like this one gather all bets from a same user
+
+   ```graphQL
+    query MyQuery {
+        contractEventNewBets(where: {bet: {owner_eq: "0xa73fEb91fE6dF51a6E36f2566030A0AB5C67646d"}}) {
+            bet {
+                amount
+                id
+                option
+                owner
+            }
+        }
     }
-  }
-  await ctx.store.insert(bets);
-});
-```
+   ```
 
-npx tsc
+   It should return all the bets you have already indexed (check on the processor logs to see which blocks have been already processed... If you are sync at 100%, all bets should appear)
 
-node -r dotenv/config lib/main.js
+> Important note : As we used the default SQD generator, it indexes all blocks and transactions, not only your smart contract events, so it can take some hours to index. We recommend to remove/comments all **Block** and **Transaction** entities persistency from the processor work on the **./src/main.ts** file. I.E : all starting with `EntityBuffer.add(new Block...` or `EntityBuffer.add(new Transaction({`
 
-npx squid-graphql-server
+> Trick : If you are familiar with GraphQL, you can skip the `squid-gen-abi` command earlier and start writing a simplier GraphQL file from scratch, then generate the ORM files with the `squid-typeorm-codegen` command like earlier and `squid-evm-typegen` for the ABI types. You will have to rewrite the main and processor yourself. An example can be found [here](https://docs.sqd.dev/sdk/how-to-start/squid-from-scratch/)
 
-go to localhost:4350/graphql
+## Deploy to SQD Cloud
 
-## Ready for the Cloud ?
+> Note : Read quickly the SQD Cloud documentation [here](https://docs.sqd.dev/cloud/overview)
 
-https://docs.sqd.dev/cloud/overview/
+1. Install the **SQD CLI**
 
-install CLI
+   ```bash
+   npm install -g @subsquid/cli
+   ```
 
-```bash
-npm install -g @subsquid/cli
-```
+1. Create new account on SQD Cloud, then create an api token (https://app.subsquid.io/profile/api-tokens)
 
-Create new account , then create api token (https://app.subsquid.io/profile/api-tokens)
-Then auth locally
+1. Authenticate locally with your new generated token from previous step, replacing **<TOKEN>**
 
-```bash
-sqd auth -k <TOKEN>
-```
+   ```bash
+   sqd auth -k <TOKEN>
+   ```
 
-then add etherlink to secrets on the ui > secrets
+1. Add Etherlink Ghostnet to secrets on https://app.subsquid.io/ , submenu **Secrets**
 
-```log
-name : ETH_HTTP
-value : https://node.ghostnet.etherlink.com
-```
+   ```log
+   name : RPC_URL
+   value : https://node.ghostnet.etherlink.com
+   ```
 
-touch squid.yaml
+1. Prepare the Squid deployment config file **squid.yaml**
 
-```yaml
-manifest_version: subsquid.io/v0.1
-name: marketpulse
+   ```bash
+   touch squid.yaml
+   ```
 
-build:
+1. Edit the file **squid.yaml**
 
-deploy:
-  env:
-    ETH_HTTP: ${{ secrets.ETH_HTTP }}
-  addons:
-    postgres:
-  processor:
-    cmd: ["sqd", "process:prod"]
-  api:
-    cmd: ["sqd", "serve:prod"]
-```
+   ```yaml
+   manifest_version: subsquid.io/v0.1
+   name: marketpulse
 
-touch commands.json
+   build:
 
-```json
-{
-  "$schema": "https://subsquid.io/schemas/commands.json",
-  "commands": {
-    "clean": {
-      "description": "delete all build artifacts",
-      "cmd": ["rm", "-rf", "lib"]
-    },
-    "build": {
-      "description": "build the project",
-      "deps": ["clean", "typegen"],
-      "cmd": ["tsc"]
-    },
-    "migration:apply": {
-      "description": "Apply the DB migrations",
-      "cmd": ["squid-typeorm-migration", "apply"]
-    },
-    "migration:generate": {
-      "description": "Generate a DB migration matching the TypeORM entities",
-      "deps": ["build", "migration:clean"],
-      "cmd": ["squid-typeorm-migration", "generate"]
-    },
-    "migration:clean": {
-      "description": "Clean the migrations folder",
-      "cmd": ["npx", "--yes", "rimraf", "./db/migrations"]
-    },
-    "migration": {
-      "deps": ["build"],
-      "cmd": ["squid-typeorm-migration", "generate"],
-      "hidden": true
-    },
-    "codegen": {
-      "description": "Generate TypeORM entities from the schema file",
-      "cmd": ["squid-typeorm-codegen"]
-    },
-    "typegen": {
-      "description": "generate abi file",
-      "cmd": ["squid-evm-typegen", "src/abi", "./src/abi/Marketpulse.json"]
-    },
-    "process": {
-      "description": "Load .env and start the squid processor",
-      "deps": ["build", "migration:apply"],
-      "cmd": ["node", "--require=dotenv/config", "lib/main.js"]
-    },
-    "process:prod": {
-      "description": "Start the squid processor",
-      "cmd": ["node", "lib/main.js"],
-      "hidden": true
-    },
-    "serve": {
-      "description": "Start the GraphQL API server",
-      "cmd": ["squid-graphql-server"]
-    },
-    "serve:prod": {
-      "description": "Start the GraphQL API server with caching and limits",
-      "cmd": [
-        "squid-graphql-server",
-        "--dumb-cache",
-        "in-memory",
-        "--dumb-cache-ttl",
-        "1000",
-        "--dumb-cache-size",
-        "100",
-        "--dumb-cache-max-age",
-        "1000"
-      ]
-    }
-  }
-}
-```
+   deploy:
+     env:
+       RPC_URL: ${{ secrets.RPC_URL }}
+     addons:
+       postgres:
+     processor:
+       cmd: ["node", "lib/main.js"]
+     api:
+       cmd:
+         [
+           "npx",
+           "squid-graphql-server",
+           "--dumb-cache",
+           "in-memory",
+           "--dumb-cache-ttl",
+           "1000",
+           "--dumb-cache-size",
+           "100",
+           "--dumb-cache-max-age",
+           "1000",
+         ]
+   ```
 
-then copy the abi file as it requires to be part of the docker files and execute locally the command for deployment
+1. Edit **package.json** to add a build script
 
-cp ../artifacts/contracts/Marketpulse.sol/Marketpulse.json ./src/abi && sqd deploy
+   ```json
+   "scripts": {
+       "build": "npm i && tsc"
+   },
+   ```
 
-wait until it is completely sync at 100% , and then on the ui go to the url for GraphQL ui, request `bets` (if there is any already on your contract)
+1. Deploy your squid
+
+   ```bash
+   sqd deploy
+   ```
+
+1. Wait until it is completely sync at 100% , and then on the [GraphQL UI > General > URL](https://app.subsquid.io/squids/) and query `contractEventNewBets` (if there is any already on your contract)
+
+# Update the frontend
+
+Now that we have all bets indexed, we will add a counter on each option representing the number of bets the connected user has made on each candidate.
+
+> Note : Other great ideas would be to 
+> - Change the `calculateOdds` function and use aggregated bet amounts directly from the indexer API to faster dapp execution and avoid to loop on teh array of bets 
+> - Store historical odds data to be able to display great graphs
+
+
+1. Go bask to your frontend app
+
+   ```bash
+   cd app
+   ```
+
+1. Install GraphQL client libraries
+
+   ```bash
+   npm install @apollo/client graphql
+   ```
+
+1. 
+
+

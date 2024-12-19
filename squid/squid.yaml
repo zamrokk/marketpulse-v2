@@ -5,11 +5,22 @@ build:
 
 deploy:
   env:
-    ETH_HTTP: ${{ secrets.ETH_HTTP }}
+    RPC_URL: ${{ secrets.RPC_URL }}
   addons:
     postgres:
   processor:
-    cmd: ["sqd", "process:prod"]
+    cmd: ["node", "lib/main.js"]
   api:
-    cmd: ["sqd", "serve:prod"]
-
+    cmd:
+      [
+        "npx",
+        "squid-graphql-server",
+        "--dumb-cache",
+        "in-memory",
+        "--dumb-cache-ttl",
+        "1000",
+        "--dumb-cache-size",
+        "100",
+        "--dumb-cache-max-age",
+        "1000",
+      ]
