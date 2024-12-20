@@ -1,0 +1,39 @@
+spec_version: 3.0
+package: dipdup_indexer
+
+datasources:
+  subsquid:
+    kind: evm.subsquid
+    url: https://v2.archive.subsquid.io/network/etherlink-testnet
+  etherscan:
+    kind: abi.etherscan
+    url: https://testnet.explorer.etherlink.com/api
+    api_key: 
+  evm_node:
+    kind: evm.node
+    url: https://node.ghostnet.etherlink.com
+
+contracts:
+  marketpulse:
+    kind: evm
+    address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
+
+indexes:
+  marketpulse_events:
+    kind: evm.events
+    datasources:
+      - subsquid
+      - etherscan
+      - evm_node
+    handlers:
+      - callback: on_newbet
+        contract: marketpulse
+        name: NewBet
+
+database:
+  kind: postgres
+  host: db
+  port: 5432
+  user: dipdup
+  password: changeme
+  database: dipdup
