@@ -15,6 +15,12 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var __importStar = (this && this.__importStar) || (function () {
     var ownKeys = function(o) {
         ownKeys = Object.getOwnPropertyNames || function (o) {
@@ -32,58 +38,36 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Bet = void 0;
-const assert_1 = __importDefault(require("assert"));
+const typeorm_1 = require("typeorm");
 const marshal = __importStar(require("./marshal"));
-class Bet {
-    constructor(props, json) {
+let Bet = class Bet {
+    constructor(props) {
         Object.assign(this, props);
-        if (json != null) {
-            this._id = marshal.id.fromJSON(json.id);
-            this._owner = marshal.string.fromJSON(json.owner);
-            this._option = marshal.string.fromJSON(json.option);
-            this._amount = marshal.bigint.fromJSON(json.amount);
-        }
     }
-    get id() {
-        (0, assert_1.default)(this._id != null, 'uninitialized access');
-        return this._id;
-    }
-    set id(value) {
-        this._id = value;
-    }
-    get owner() {
-        (0, assert_1.default)(this._owner != null, 'uninitialized access');
-        return this._owner;
-    }
-    set owner(value) {
-        this._owner = value;
-    }
-    get option() {
-        (0, assert_1.default)(this._option != null, 'uninitialized access');
-        return this._option;
-    }
-    set option(value) {
-        this._option = value;
-    }
-    get amount() {
-        (0, assert_1.default)(this._amount != null, 'uninitialized access');
-        return this._amount;
-    }
-    set amount(value) {
-        this._amount = value;
-    }
-    toJSON() {
-        return {
-            id: this.id,
-            owner: this.owner,
-            option: this.option,
-            amount: marshal.bigint.toJSON(this.amount),
-        };
-    }
-}
+};
 exports.Bet = Bet;
+__decorate([
+    (0, typeorm_1.PrimaryColumn)(),
+    __metadata("design:type", String)
+], Bet.prototype, "id", void 0);
+__decorate([
+    (0, typeorm_1.Column)("text", { nullable: false }),
+    __metadata("design:type", String)
+], Bet.prototype, "owner", void 0);
+__decorate([
+    (0, typeorm_1.Column)("text", { nullable: false }),
+    __metadata("design:type", String)
+], Bet.prototype, "option", void 0);
+__decorate([
+    (0, typeorm_1.Column)("numeric", { transformer: marshal.bigintTransformer, nullable: false }),
+    __metadata("design:type", BigInt)
+], Bet.prototype, "amount", void 0);
+exports.Bet = Bet = __decorate([
+    (0, typeorm_1.Entity)(),
+    __metadata("design:paramtypes", [Object])
+], Bet);

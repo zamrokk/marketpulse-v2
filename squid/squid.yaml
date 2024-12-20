@@ -5,7 +5,7 @@ build:
 
 deploy:
   env:
-    RPC_URL: ${{ secrets.RPC_URL }}
+    ETH_HTTP: ${{ secrets.ETH_HTTP }}
   addons:
     postgres:
   processor:

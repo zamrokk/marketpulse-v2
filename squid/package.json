@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "npm i && tsc"
-  },
+       "build": "npm i && tsc"
+   },
   "author": "",
   "license": "ISC",
   "description": "",
@@ -18,8 +18,8 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
-    "@subsquid/evm-typegen": "^3.3.0",
-    "@subsquid/squid-gen-evm": "^1.2.1",
+    "@subsquid/evm-typegen": "^4.3.0",
+    "@subsquid/squid-gen-evm": "^2.0.0",
     "@subsquid/typeorm-codegen": "^1.3.3",
     "typescript": "^5.7.2"
   }

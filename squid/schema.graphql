@@ -1,35 +1,6 @@
-type Block @entity {
-    id: ID!
-    number: Int! @index
-    timestamp: DateTime! @index
+type Bet @entity {
+  id: ID! # uint256
+  owner: String! # address
+  option: String! # string
+  amount: BigInt! # uint256
 }
-
-type Transaction @entity {
-    id: ID!
-    blockNumber: Int @index
-    blockTimestamp: DateTime! @index
-    hash: String! @index
-    to: String @index
-    from: String @index
-    status: Int @index
-}
-
-type ContractEventNewBet @entity {
-    id: ID!
-    blockNumber: Int! @index
-    blockTimestamp: DateTime! @index
-    transactionHash: String! @index
-    contract: String! @index
-    eventName: String! @index
-    bet: Bet!
-}
-
-type Bet {
-        id: ID! # uint256
-        owner: String! # address
-        option: String! # string
-        amount: BigInt! # uint256
-}
-
-
-
