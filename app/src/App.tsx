@@ -62,7 +62,7 @@ export default function App({ thirdwebClient }: AppProps) {
   const [status, setStatus] = useState<BET_RESULT>(BET_RESULT.PENDING);
   const [winner, setWinner] = useState<string | undefined>(undefined);
   const [fees, setFees] = useState<number>(0);
-  const [bets, setBets] = useState<Marketpulse.BetStruct[]>([]);
+  const [_bets, setBets] = useState<Marketpulse.BetStruct[]>([]);
 
   const reload = async () => {
     if (!account?.address) {
