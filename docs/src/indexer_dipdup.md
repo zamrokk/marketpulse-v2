@@ -22,17 +22,15 @@ datasources:
   etherscan:
     kind: abi.etherscan
     url: https://testnet.explorer.etherlink.com/api
-    api_key: 
+    api_key:
   evm_node:
     kind: evm.node
     url: https://node.ghostnet.etherlink.com
-    ws_url: wss://node.ghostnet.etherlink.com
 
 contracts:
   marketpulse:
     kind: evm
     address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
-    typename: marketpulse
 
 indexes:
   marketpulse_events:
@@ -42,9 +40,10 @@ indexes:
       - etherscan
       - evm_node
     handlers:
-      - callback: on_transfer
+      - callback: on_newbet
         contract: marketpulse
-        name: Transfer
+        name: NewBet
+    first_level: 16332702
 ```
 
 dipdup init
@@ -109,11 +108,18 @@ Add this config to dipdup.yaml
 ```yaml
 database:
   kind: postgres
-  host: db
+  host: localhost
   port: 5432
   user: dipdup
   password: changeme
   database: dipdup
+
+hasura:
+  url: http://localhost:49180
+  admin_secret: changeme
+  select_limit: 10000
+  allow_aggregations: false
+  rest: true
 ``` 
 
 create a local docker-compose.yaml
@@ -121,7 +127,39 @@ create a local docker-compose.yaml
 touch docker-compose.yaml
 
 ```yaml
+version: "3.8"
 
+services:
+  db:
+    image: postgres:14
+    restart: always
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_USER=dipdup
+      - POSTGRES_DB=dipdup
+      - POSTGRES_PASSWORD=changeme
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dipdup"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  hasura:
+    image: hasura/graphql-engine:v2.17.1
+    ports:
+      - "127.0.0.1:49180:8080"
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - HASURA_GRAPHQL_DATABASE_URL=postgres://dipdup:changeme@db:5432/dipdup
+      - HASURA_GRAPHQL_ENABLE_CONSOLE=true
+      - HASURA_GRAPHQL_DEV_MODE=true
+      - HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log
+      - HASURA_GRAPHQL_ADMIN_SECRET=changeme
+      - HASURA_GRAPHQL_UNAUTHORIZED_ROLE=user
+      - HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES=true
 ```
 
 Run it

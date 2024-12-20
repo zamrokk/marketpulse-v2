@@ -8,7 +8,7 @@ datasources:
   etherscan:
     kind: abi.etherscan
     url: https://testnet.explorer.etherlink.com/api
-    api_key: 
+    api_key:
   evm_node:
     kind: evm.node
     url: https://node.ghostnet.etherlink.com
@@ -29,11 +29,19 @@ indexes:
       - callback: on_newbet
         contract: marketpulse
         name: NewBet
+    first_level: 16332702
 
 database:
   kind: postgres
-  host: db
+  host: localhost
   port: 5432
   user: dipdup
   password: changeme
   database: dipdup
+
+hasura:
+  url: http://localhost:49180
+  admin_secret: changeme
+  select_limit: 10000
+  allow_aggregations: false
+  rest: true
