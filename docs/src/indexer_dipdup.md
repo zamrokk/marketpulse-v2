@@ -1,177 +1,197 @@
 # Dipdup
 
-Install Python
+1. Dipdup works with Python, you need to install it: https://www.python.org/downloads/
 
-curl -Lsf https://dipdup.io/install.py | python3.12
+   ```bash
+   curl -Lsf https://dipdup.io/install.py | python3.12
+   ```
 
-sudo apt install pipx
+1. Install the packet manager
 
-pipx install dipdup
+   ```bash
+   sudo apt install pipx
+   ```
 
+1. Install dipdup CLI
 
-create the dipdup yaml file
+   ```bash
+   pipx install dipdup
+   ```
 
-```yaml
-spec_version: 3.0
-package: dipdup_indexer
+1. Create the `dipdup.yaml` configuration file
 
-datasources:
-  subsquid:
-    kind: evm.subsquid
-    url: https://v2.archive.subsquid.io/network/etherlink-testnet
-  etherscan:
-    kind: abi.etherscan
-    url: https://testnet.explorer.etherlink.com/api
-    api_key:
-  evm_node:
-    kind: evm.node
-    url: https://node.ghostnet.etherlink.com
+   ```bash
+   touch dipdup.yaml
+   ```
 
-contracts:
-  marketpulse:
-    kind: evm
-    address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
+1. Edit this file
 
-indexes:
-  marketpulse_events:
-    kind: evm.events
-    datasources:
-      - subsquid
-      - etherscan
-      - evm_node
-    handlers:
-      - callback: on_newbet
-        contract: marketpulse
-        name: NewBet
-    first_level: 16332702
-```
+   ```yaml
+   spec_version: 3.0
+   package: dipdup_indexer
+   datasources:
+     subsquid:
+       kind: evm.subsquid
+       url: https://v2.archive.subsquid.io/network/etherlink-testnet
+     etherscan:
+       kind: abi.etherscan
+       url: https://testnet.explorer.etherlink.com/api
+       api_key:
+     evm_node:
+       kind: evm.node
+       url: https://node.ghostnet.etherlink.com
+   contracts:
+     marketpulse:
+       kind: evm
+       address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
+   indexes:
+     marketpulse_events:
+       kind: evm.events
+       datasources:
+         - subsquid
+         - etherscan
+         - evm_node
+       handlers:
+         - callback: on_newbet
+           contract: marketpulse
+           name: NewBet
+       first_level: 16297152
+   ```
 
-dipdup init
+1. Run the default setup
 
-> Note, mv the dipdup yaml inside the new indexer directory
+   ```bash
+   dipdup init
+   ```
 
+1. Move the `dipdup.yaml` inside the new `dipdup_indexer` directory
 
-Edit **models/__init__.py**
+   ```bash
+   mv dipdup.yaml dipdup_indexer
+   ```
 
-```python3
-from dipdup import fields
-from dipdup.models import Model
+1. Edit `./models/__init__.py`
 
-
-class Bet(Model):
-    id = fields.IntField(primary_key=True)
-    owner = fields.TextField()
-    option = fields.TextField()
-    amount = fields.BigIntField()
-
-    class Meta:
-        maxsize = 2**18
-```
-
-
-Edit **handlers/on_newbet.py**
-
-```python
-from dipdup.context import HandlerContext
-from dipdup.models.evm import EvmEvent
-from dipdup_indexer import models as models
-from dipdup_indexer.types.marketpulse.evm_events.new_bet import NewBetPayload
-from tortoise.exceptions import DoesNotExist
+   ```python3
+   from dipdup import fields
+   from dipdup.models import Model
 
 
-async def on_newbet(
-    ctx: HandlerContext,
-    event: EvmEvent[NewBetPayload],
-) -> None:
-    try:
-        bet = await models.Bet.cached_get(pk=event.payload.id)
-    except DoesNotExist:
-        bet = models.Bet(
-            id=event.payload.id,
-            owner=event.payload.owner,
-            option=event.payload.option,
-            amount=event.payload.amount
-        )
-        bet.cache()
-    await bet.save()
-```
+   class Bet(Model):
+       id = fields.IntField(primary_key=True)
+       owner = fields.TextField()
+       option = fields.TextField()
+       amount = fields.BigIntField()
 
-Run the indexer on memory just to check
+       class Meta:
+           maxsize = 2**18
+   ```
 
-dipdup run
+1. Edit `./handlers/on_newbet.py`
+
+   ```python
+   from dipdup.context import HandlerContext
+   from dipdup.models.evm import EvmEvent
+   from dipdup_indexer import models as models
+   from dipdup_indexer.types.marketpulse.evm_events.new_bet import NewBetPayload
+   from tortoise.exceptions import DoesNotExist
 
 
-Prepare a PosgresSQL + Hasura stack for GraphQL
+   async def on_newbet(
+       ctx: HandlerContext,
+       event: EvmEvent[NewBetPayload],
+   ) -> None:
+       try:
+           bet = await models.Bet.cached_get(pk=event.payload.id)
+       except DoesNotExist:
+           bet = models.Bet(
+               id=event.payload.id,
+               owner=event.payload.owner,
+               option=event.payload.option,
+               amount=event.payload.amount
+           )
+           bet.cache()
+       await bet.save()
+   ```
 
-Add this config to dipdup.yaml
+1. Run the indexer on memory just to check
 
-```yaml
-database:
-  kind: postgres
-  host: localhost
-  port: 5432
-  user: dipdup
-  password: changeme
-  database: dipdup
+   ```bash
+   dipdup run
+   ```
 
-hasura:
-  url: http://localhost:49180
-  admin_secret: changeme
-  select_limit: 10000
-  allow_aggregations: false
-  rest: true
-``` 
+1. Prepare a PosgresSQL + Hasura stack for GraphQL. Add this config to `dipdup.yaml`
 
-create a local docker-compose.yaml
+   ```yaml
+   database:
+     kind: postgres
+     host: localhost
+     port: 5432
+     user: dipdup
+     password: changeme
+     database: dipdup
+   hasura:
+     url: http://localhost:49180
+     admin_secret: changeme
+     select_limit: 10000
+     allow_aggregations: false
+     rest: true
+   ```
 
-touch docker-compose.yaml
+1. Create a local `docker-compose.yaml`
 
-```yaml
-version: "3.8"
+   ```bash
+   touch docker-compose.yaml
+   ```
 
-services:
-  db:
-    image: postgres:14
-    restart: always
-    ports:
-      - "127.0.0.1:5432:5432"
-    environment:
-      - POSTGRES_USER=dipdup
-      - POSTGRES_DB=dipdup
-      - POSTGRES_PASSWORD=changeme
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dipdup"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+1. Edit this file
 
-  hasura:
-    image: hasura/graphql-engine:v2.17.1
-    ports:
-      - "127.0.0.1:49180:8080"
-    depends_on:
-      - db
-    restart: always
-    environment:
-      - HASURA_GRAPHQL_DATABASE_URL=postgres://dipdup:changeme@db:5432/dipdup
-      - HASURA_GRAPHQL_ENABLE_CONSOLE=true
-      - HASURA_GRAPHQL_DEV_MODE=true
-      - HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log
-      - HASURA_GRAPHQL_ADMIN_SECRET=changeme
-      - HASURA_GRAPHQL_UNAUTHORIZED_ROLE=user
-      - HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES=true
-```
+   ```yaml
+   version: "3.8"
+   services:
+     db:
+       image: postgres:14
+       restart: always
+       ports:
+         - "127.0.0.1:5432:5432"
+       environment:
+         - POSTGRES_USER=dipdup
+         - POSTGRES_DB=dipdup
+         - POSTGRES_PASSWORD=changeme
+       healthcheck:
+         test: ["CMD-SHELL", "pg_isready -U dipdup"]
+         interval: 10s
+         timeout: 5s
+         retries: 5
+     hasura:
+       image: hasura/graphql-engine:v2.17.1
+       ports:
+         - "127.0.0.1:49180:8080"
+       depends_on:
+         - db
+       restart: always
+       environment:
+         - HASURA_GRAPHQL_DATABASE_URL=postgres://dipdup:changeme@db:5432/dipdup
+         - HASURA_GRAPHQL_ENABLE_CONSOLE=true
+         - HASURA_GRAPHQL_DEV_MODE=true
+         - HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log
+         - HASURA_GRAPHQL_ADMIN_SECRET=changeme
+         - HASURA_GRAPHQL_UNAUTHORIZED_ROLE=user
+         - HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES=true
+   ```
 
-Run it
+1. Run the Docker infrastructure locally on the background
 
-docker-compose up -d
+   ```bash
+   docker-compose up -d
+   ```
 
-ReRun the indexer
+1. Re-run the indexer
 
+   ```bash
+   dipdup run
+   ```
 
-dipdup run
+1. Go to to Hasura, to query your bets once the indexers has reached 100%
 
-
-Connect to hasura
-
-http://localhost:49180
+   http://localhost:49180

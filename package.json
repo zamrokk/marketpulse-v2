@@ -11,6 +11,8 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
     "@nomicfoundation/hardhat-verify": "^2.0.12",
+    "@subql/cli": "^5.4.0",
+    "@subql/common-ethereum": "^4.6.0",
     "hardhat": "^2.22.17",
     "typechain": "^8.3.2"
   },

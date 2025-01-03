@@ -29,7 +29,7 @@ indexes:
       - callback: on_newbet
         contract: marketpulse
         name: NewBet
-    first_level: 16332702
+    first_level: 16297152
 
 database:
   kind: postgres
