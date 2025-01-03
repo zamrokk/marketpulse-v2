@@ -1,0 +1,8 @@
+{
+  "etherlink-testnet": {
+    "Marketpulse": {
+      "address": "0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a",
+      "startBlock": 16297152
+    }
+  }
+}

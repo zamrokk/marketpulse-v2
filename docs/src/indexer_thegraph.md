@@ -1,28 +1,36 @@
 ## The graph
 
-https://docs.etherlink.com/building-on-etherlink/indexing-graph/
+There is already a generic example of Etherlink configuration [here](https://docs.etherlink.com/building-on-etherlink/indexing-graph/)
 
-> Note : Node >= v20.18.1
+> Note : you need to have Node version >= v20.18.1
 
-npm install -g @graphprotocol/graph-cli
+1. Install the Graph CLI
 
-graph init marketpulse thegraph --protocol=ethereum
+   ```bash
+   npm install -g @graphprotocol/graph-cli
+   ```
 
-> Note : buggy if contract is buggy too --network=etherlink-testnet
+1. Initialize the project
 
-> Note : buggy verify on --from-contract=0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
+   ```bash
+   graph init marketpulse thegraph_indexer --protocol=ethereum
+   ```
 
-> Note : buggy --abi==artifacts/contracts/Marketpulse.sol/Marketpulse.json
+   > Choose :
+   > Network: etherlink-testnet
+   > Source: smart contract
+   > Contract address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
+   > abi: artifacts/contracts/Marketpulse.sol/Marketpulse.json
+   > Start block: 16297152 
+   > Index contract events as entities: Y
 
 ---
 
-Only events (call and blocks ) are caught, so we need to modify the source code to emit events when a bet is created
+1. Add a new event to the 
 
-- add a new event
-
-```Solidity
-    event NewBet(Bet bet);
-```
+   ```Solidity
+       event NewBet(Bet bet);
+   ```
 
 - remove the betKeys array field
 - remove the getBetKeys function
