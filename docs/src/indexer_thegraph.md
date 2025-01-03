@@ -18,89 +18,45 @@ There is already a generic example of Etherlink configuration [here](https://doc
 
    > Choose :
    > Network: etherlink-testnet
-   > Source: smart contract
+   > Source: Smart contract
    > Contract address: 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a
-   > abi: artifacts/contracts/Marketpulse.sol/Marketpulse.json
-   > Start block: 16297152 
+   > Start block: 16297152
    > Index contract events as entities: Y
+   > Add another contract? : N
 
----
+1. (Optional) All files have been generated, but if you need to modify and regenerate the new files, run :
 
-1. Add a new event to the 
-
-   ```Solidity
-       event NewBet(Bet bet);
+   ```bash
+   graph codegen
+   graph build
    ```
 
-- remove the betKeys array field
-- remove the getBetKeys function
+1. Authenticate to the Graph Cloud replacing your API KEY `<DEPLOY_KEY>` below. To create it, [follow these steps first](https://thegraph.com/docs/en/subgraphs/querying/managing-api-keys/#create-and-manage-api-keys)
 
-- Edit `bet` funtion
+   ```bash
+   graph auth <DEPLOY_KEY>
+   ```
 
-```Solidity
-/**
-     * place bets and returns the betId
-     */
-    function bet(
-        string calldata selection,
-        uint256 odds
-    ) public payable returns (uint256) {
-        require(msg.value > 0, "Bet amount must be positive.");
-        require(
-            msg.value <= msg.sender.balance,
-            "Insufficient balance to place this bet."
-        );
+1. Go to the [Graph Studio website](https://thegraph.com/studio/) and create a subgraph named `marketpulse`
 
-        uint256 betId = generateBetId();
+1. Deploy your graph version `0.0.1` to the Graph Studio
 
-        Bet newBet = Bet({
-            id: betId,
-            option: selection,
-            amount: msg.value,
-            owner: payable(msg.sender)
-        });
-        bets.push(newBet);
-        emit NewBet(newBet);
+   ```bash
+   graph deploy marketpulse -l 0.0.1
+   ```
 
-        console.log("Bet %d placed", betId);
+1. Go back to the [Graph Studio playground page](https://thegraph.com/studio/subgraph/marketpulse/playground) and query it
 
-        console.log(
-            "Bet placed: %d on %s at odds of %d",
-            msg.value,
-            selection,
-            odds
-        );
-        return betId;
-    }
-```
+   ```graphQL
+   {
+   newBets {
+       id
+       bet_id
+       bet_owner
+       bet_option
+   }
+   }
+   ```
 
-> Note : in this tutorial, we don't delete bets but it could be possible on a real app
+1. (Optional) To publish your graph to the community and get other indexer workers to index it, you need first a minimum of 0.001 ETH on Arbitrum mainnet to claim testnet Sepolia tokens, and then you can claim Sepolia tokens on this [faucet](https://www.alchemy.com/faucets/arbitrum-sepolia)
 
-Optimization : now we have to change the calculateOdds function has we cannot loop on the betKeys array anymore. It will reduce the contract storage and also execution time. Let's have a accumulator amount of bets per options
-
-- Replace the calculateOdds function by this code
-
-```Solidity
-
-```
-
----
-
-```bash
-graph codegen
-graph build
-
-graph auth <DEPLOY_KEY>
-
-graph deploy marketpulse
-```
-
-Note : very boring to get minimum 0.001 ETH on Arbitrum mainnet, then go to the faucet (https://www.alchemy.com/faucets/arbitrum-sepolia) and register on Alchemy ...
-
-Go to thegraph website and
-test
-
-then publish your graph and .... wait ,it takes several hours on testnet ...
-
-//if abi changed, regen it, delete the full project and try again
-and then again graph init ...

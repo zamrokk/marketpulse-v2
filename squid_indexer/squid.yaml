@@ -1,0 +1,24 @@
+   manifest_version: subsquid.io/v0.1
+   name: marketpulse
+   build:
+   deploy:
+     env:
+       ETH_HTTP: ${{ secrets.ETH_HTTP }}
+     addons:
+       postgres:
+     processor:
+       cmd: ["node", "lib/main.js"]
+     api:
+       cmd:
+         [
+           "npx",
+           "squid-graphql-server",
+           "--dumb-cache",
+           "in-memory",
+           "--dumb-cache-ttl",
+           "1000",
+           "--dumb-cache-size",
+           "100",
+           "--dumb-cache-max-age",
+           "1000",
+         ]

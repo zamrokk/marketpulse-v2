@@ -13,14 +13,168 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
 |      | thegraph                                                                                                                                                                                                                                                                       | sqd                                                                                                                                                                                                                                                                                                | dipdup                                                                                                                                                                       | subquery                                                                                                                                                                                                                                           |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | pros | Scan abi and autogenerate all files from events with the CLI. Quickly deploy to production. Share revenue with other indexer providers                                                                                                                                         | Autogenerate ORM and model files from graphQL with the CLI. Easily customizable as there is a from scratch tutorial. Cloud setup is really simple and has free plan. Can also be deploy locally                                                                                                    | Known indexer for people coming from Tezos. For Python devs                                                                                                                  | Autogenerate model files from ABI and ORM from GraphQL. Default GraphQL generation is quite rich with filters, order by and aggregations. Indexation is really fast because of parallelization and rate limit control. Can also be deploy locally. |
-| cons | Slow setup on the Cloud part (Need to get token for Arbitrum ETH, to request Arbitrum Sepolia ETH on faucets). Etherlink is not eligible to Signal tips on the network, so there is no community indexer providers. When ABI changes, need to restart the project from scratch | Takes more time to prepare the first subgraph and configure the infrastructure locally. It requires minimum devops skill. Documentation on commands.json is not very clear and the code generator squid-gen-abi is for expert so you have to write the processor yourself. No shared revenue model | Need to code in Python the model, there is no generator from ABI or GraphQL. Quickstart documentation for database and graphQL in production lack of details. No Cloud offer |  Default tutorial using global CLI setup does not work, it require to install dependencies as dev dependencies directly on the project. Hard to start the project if not using the default template                                                                                                                                                                                                                                                  |
+| cons | Slow setup on the Cloud part (Need to get token for Arbitrum ETH, to request Arbitrum Sepolia ETH on faucets). Etherlink is not eligible to Signal tips on the network, so there is no community indexer providers. When ABI changes, need to restart the project from scratch | Takes more time to prepare the first subgraph and configure the infrastructure locally. It requires minimum devops skill. Documentation on commands.json is not very clear and the code generator squid-gen-abi is for expert so you have to write the processor yourself. No shared revenue model | Need to code in Python the model, there is no generator from ABI or GraphQL. Quickstart documentation for database and graphQL in production lack of details. No Cloud offer | Default tutorial using global CLI setup does not work, it require to install dependencies as dev dependencies directly on the project. Hard to start the project if not using the default template                                                 |
 
-> Note : Alternative indexation examples can be found here : 
+> Note : Alternative indexation examples can be found here :
 >
 > - [TheGraph](./indexer_thegraph.md)
 > - [DipDup](./indexer_dipdup.md)
 > - [SubQuery](./indexer_subquery.md)
 > - Otherwise, continue with the next section using SQD (SubSquid)
+
+## Change the Solidity source code
+
+All indexers work on specific triggers :
+
+- transaction calls
+- event emitted
+- or other specific trigger
+
+1. We need to add a new event every time a bet is created. On your `./contracts/Marketpulse.sol` contract file, add this new line event after the Pong event `event Pong();`
+
+   ```Solidity
+       event NewBet(Bet bet);
+   ```
+
+1. Edit the `bet` function to add the event emission `emit NewBet(newBet)`
+
+   ```Solidity
+    /**
+     * place bets and returns the betId
+     */
+    function bet(
+        string calldata selection,
+        uint256 odds
+    ) public payable returns (uint256) {
+        require(msg.value > 0, "Bet amount must be positive.");
+        require(
+            msg.value <= msg.sender.balance,
+            "Insufficient balance to place this bet."
+        );
+
+        uint256 betId = generateBetId();
+
+        Bet memory newBet = Bet({
+            id: betId,
+            option: selection,
+            amount: msg.value,
+            owner: payable(msg.sender)
+        });
+
+        bets[betId] = newBet;
+        betKeys.push(betId);
+
+        emit NewBet(newBet);
+
+        console.log("Bet %d placed", betId);
+
+        console.log(
+            "Bet placed: %d on %s at odds of %d",
+            msg.value,
+            selection,
+            odds
+        );
+
+        //update aggregated amounts
+        if (keccak256(bytes(newBet.option)) == keccak256(bytes("trump"))) {
+            (bool success, uint256 result) = totalTrumpAmount.tryAdd(
+                newBet.amount
+            );
+            require(success, "Cannot add totalTrumpAmount and bet.amount");
+            totalTrumpAmount = result;
+        } else {
+            (bool success, uint256 result) = totalHarrisAmount.tryAdd(
+                newBet.amount
+            );
+            require(success, "Cannot add totalHarrisAmount and bet.amount");
+            totalHarrisAmount = result;
+        }
+
+        return betId;
+    }
+   ```
+
+   > Note : in this tutorial, we don't delete bets but it might be possible on a real app
+
+1. Optimization : We have to change the `calculateOdds` function to use precalculated amounts and avoid looping again on the keys array. It reduces the contract storage and also execution time. Add these lines at the end of the `bet` function before returning the `return betId;`
+
+   ```Solidity
+   //update aggregated amounts
+         if (keccak256(bytes(newBet.option)) == keccak256(bytes("trump"))) {
+               (bool success, uint256 result) = totalTrumpAmount.tryAdd(
+                  newBet.amount
+               );
+               require(success, "Cannot add totalTrumpAmount and bet.amount");
+               totalTrumpAmount = result;
+         } else {
+               (bool success, uint256 result) = totalHarrisAmount.tryAdd(
+                  newBet.amount
+               );
+               require(success, "Cannot add totalHarrisAmount and bet.amount");
+               totalHarrisAmount = result;
+         }
+
+   ```
+
+1. Replace the `calculateOdds` function by this code
+
+   ```Solidity
+   /**
+    *
+   * @param option selected option
+   * @param betAmount (Optional : default is 0) if user want to know the output gain after putting some money on it. Otherwise it gives actual gain without betting and influencing odds calculation
+   * @return odds (in ODDS_DECIMAL unit)
+   */
+   function calculateOdds(
+      string memory option,
+      uint256 betAmount //wei
+   ) public view returns (uint256) {
+      console.log(
+            "calculateOdds for option %s and bet amount is %d",
+            option,
+            betAmount
+      );
+
+      console.log("totalTrumpAmount : %d", totalTrumpAmount);
+      console.log("totalHarrisAmount  : %d", totalHarrisAmount);
+
+      uint256 totalLoserAmount = (keccak256(bytes("trump")) !=
+            keccak256(bytes(option)))
+            ? totalTrumpAmount
+            : totalHarrisAmount; //wei
+      uint256 totalWinnerAmount = (keccak256(bytes("trump")) ==
+            keccak256(bytes(option)))
+            ? totalTrumpAmount + betAmount
+            : totalHarrisAmount + betAmount; //wei
+
+      console.log("totalLoserAmount : %d", totalLoserAmount);
+      console.log("totalWinnerAmount  : %d", totalWinnerAmount);
+
+      uint256 part = Math.mulDiv(
+            totalLoserAmount,
+            10 ** ODD_DECIMALS,
+            totalWinnerAmount
+      );
+
+      console.log("part per ODD_DECIMAL : %d", part);
+
+      (bool success1, uint256 oddwithoutFees) = part.tryAdd(
+            10 ** ODD_DECIMALS
+      );
+      require(success1, "Cannot add part and 1");
+
+      console.log("oddwithoutFees  : %d", oddwithoutFees);
+
+      (bool success2, uint256 odd) = oddwithoutFees.trySub(
+            (FEES * 10 ** ODD_DECIMALS) / 100
+      );
+      require(success2, "Cannot remove fees from odd");
+
+      console.log("odd  : %d", odd);
+
+      return odd;
+   }
+   ```
 
 ## Subsquid
 
@@ -31,7 +185,7 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
 1. Create a simple typescript sub-project
 
    ```bash
-   mkdir squid && cd squid && npm init && touch .gitignore
+   mkdir squid_indexer && cd squid_indexer && npm init && touch .gitignore
    ```
 
 1. Edit **.gitignore** file
@@ -83,14 +237,14 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
 
    ```graphQL
    type Bet @entity {
-   id: ID! # uint256
-   owner: String! # address
-   option: String! # string
-   amount: BigInt! # uint256
+      id: ID! # uint256
+      owner: String! # address
+      option: String! # string
+      amount: BigInt! # uint256
    }
    ```
 
-   > Note : It is possible to use the sqd command `squid-gen-abi` to generate the complete ORM file, ABI types and processor. We do not recommend to do so if you are not expert with SQD because it index by default all blocks, transactions and a generic JSON representation of the events. Then, you should redefine the generic JSON to a structured entity to be able to query it easily. Example :
+   > Note : It is possible to use the sqd command `squid-gen-abi` to generate the complete ORM file, ABI types and processor. We do not recommend to do so if you are not expert with SQD because it index by default all blocks, transactions and a generic JSON representation of the events. Then, you have to redefine the generic JSON to a structured entity for querying it easily. Example :
    >
    > ```bash
    > npx squid-gen-abi --event NewBet --abi ../artifacts/contracts/Marketpulse.sol/> Marketpulse.json --address 0x386Dc5E8e0f8252880cFA9B9e607C749899bf13a --archive https://v2.archive.subsquid.io/network/etherlink-testnet --from 16297152
@@ -224,38 +378,32 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
    node -r dotenv/config lib/main.js
    ```
 
-1. Run the GraphQL server locally
+1. Run the GraphQL server locally on another terminal
 
    ```bash
    npx squid-graphql-server
    ```
 
-1. Go to localhost:4350/graphql
+1. Go to [GraphQL playground](http://localhost:4350/graphql)
 
-1. Play with graphQL queries, like this one gather all bets from a same user
+1. Play with graphQL queries, like this one listing all bets
 
    ```graphQL
-    query MyQuery {
-        contractEventNewBets(where: {bet: {owner_eq: "0xa73fEb91fE6dF51a6E36f2566030A0AB5C67646d"}}) {
-            bet {
-                amount
-                id
-                option
-                owner
-            }
-        }
-    }
+   query MyQuery {
+      bets {
+         id
+         option
+         owner
+         amount
+      }
+   }
    ```
 
    It should return all the bets you have already indexed (check on the processor logs to see which blocks have been already processed... If you are sync at 100%, all bets should appear)
 
-> Important note : As we used the default SQD generator, it indexes all blocks and transactions, not only your smart contract events, so it can take some hours to index. We recommend to remove/comments all **Block** and **Transaction** entities persistency from the processor work on the **./src/main.ts** file. I.E : all starting with `EntityBuffer.add(new Block...` or `EntityBuffer.add(new Transaction({`
-
-> Trick : If you are familiar with GraphQL, you can skip the `squid-gen-abi` command earlier and start writing a simplier GraphQL file from scratch, then generate the ORM files with the `squid-typeorm-codegen` command like earlier and `squid-evm-typegen` for the ABI types. You will have to rewrite the main and processor yourself. An example can be found [here](https://docs.sqd.dev/sdk/how-to-start/squid-from-scratch/)
-
 ## Deploy to SQD Cloud
 
-> Note : Read quickly the SQD Cloud documentation [here](https://docs.sqd.dev/cloud/overview)
+You can find the SQD Cloud documentation [here](https://docs.sqd.dev/cloud/overview)
 
 1. Install the **SQD CLI**
 
@@ -265,33 +413,31 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
 
 1. Create new account on SQD Cloud, then create an api token (https://app.subsquid.io/profile/api-tokens)
 
-1. Authenticate locally with your new generated token from previous step, replacing **<TOKEN>**
+1. Authenticate locally with your new generated token from previous step, replacing `<TOKEN>` below
 
    ```bash
    sqd auth -k <TOKEN>
    ```
 
-1. Add Etherlink Ghostnet to secrets on https://app.subsquid.io/ , submenu **Secrets**
+1. Add Etherlink Ghostnet to secrets on https://app.subsquid.io/ , submenu `Secrets`
 
    ```log
    name : ETH_HTTP
    value : https://node.ghostnet.etherlink.com
    ```
 
-1. Prepare the Squid deployment config file **squid.yaml**
+1. Prepare the Squid deployment config file `squid.yaml`
 
    ```bash
    touch squid.yaml
    ```
 
-1. Edit the file **squid.yaml**
+1. Edit the file `squid.yaml`
 
    ```yaml
    manifest_version: subsquid.io/v0.1
    name: marketpulse
-
    build:
-
    deploy:
      env:
        ETH_HTTP: ${{ secrets.ETH_HTTP }}
@@ -315,7 +461,7 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
          ]
    ```
 
-1. Edit **package.json** to add a build script
+1. Edit `package.json` to replace the build script
 
    ```json
    "scripts": {
@@ -329,16 +475,16 @@ Here is a comparison of the main providers [**TheGraph**](https://thegraph.com/)
    sqd deploy
    ```
 
-1. Wait until it is completely sync at 100% , and then on the [GraphQL UI > General > URL](https://app.subsquid.io/squids/) and query `bets` (if there is any already on your contract)
+1. Wait until it is completely sync at 100% , and then on the [GraphQL UI > General > URL](https://app.subsquid.io/squids/) and query `bets`
 
 # Update the frontend
 
-All bets are indexed, so there is no need to call the blockchain node RPC.
+All bets are indexed, so there is no need to call the blockchain node RPC anymore.
 
 > Note : Other great ideas would be to
 >
 > - Change the `calculateOdds` function and use aggregated bet amounts directly from the indexer API to faster dapp execution and avoid to loop on the bets arrays
-> - Store historical odds data to be able to display great graphs
+> - Store historical odds data to be able to display great graphs on the frontend page
 
 1.  Go bask to your frontend app
 
@@ -352,9 +498,7 @@ All bets are indexed, so there is no need to call the blockchain node RPC.
     npm install @apollo/client graphql
     ```
 
-1.  Edit **./src/App.tsx**
-
-         uri: "YOUR_SQUID_GRAPHQL_ENDPOINT",
+1.  Edit `./src/App.tsx`
 
     1. Add the GraphQl client initialization at the beginning of the file, after the imports. Replace `YOUR_SQUID_GRAPHQL_ENDPOINT` with your own value from SQD Cloud
 
@@ -371,7 +515,7 @@ All bets are indexed, so there is no need to call the blockchain node RPC.
        - `const dataBetKeys = await readContract...`
        - all block `useEffect(..., [betKeys]);`
 
-    1. Update end of **reload** function with below code to fetch the bets from the indexer
+    1. Update end of `reload` function with below code to fetch the bets from the indexer
 
        ```typescript
        const GET_BETS = gql`

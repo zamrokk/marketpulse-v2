@@ -1,0 +1,6 @@
+type Bet @entity {
+  id: ID! # uint256
+  owner: String! # address
+  option: String! # string
+  amount: BigInt! # uint256
+}
